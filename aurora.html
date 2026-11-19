@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solicitudes | Comercial Aurora</title>
+<style>
+:root{color-scheme:light;font-family:system-ui,sans-serif;color:#17243b;background:#f4f6fb;--blue:#2445c5;--line:#dce3ef;--muted:#53647c}
+*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer} button,input,select,textarea{border:1px solid #c5d0e1;border-radius:.55rem;padding:.65rem .8rem;background:white;color:inherit}button:hover{background:#edf1ff}button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #5874ef;outline-offset:2px}.primary{background:var(--blue);border-color:var(--blue);color:white;font-weight:650}.primary:hover{background:#1935a6}
+header{background:#162447;color:white}.shell{width:min(1200px,calc(100% - 3rem));margin:auto}.bar,.heading,.toolbar,.actions{display:flex;align-items:center;justify-content:space-between;gap:.9rem;flex-wrap:wrap}.bar{padding:1rem 0}.brand{display:flex;align-items:center;gap:.75rem;font-weight:750}.mark{display:grid;place-items:center;background:#dce4ff;color:#182e86;width:2.4rem;height:2.4rem;border-radius:.7rem;font-size:1.2rem}.bar label{display:flex;align-items:center;gap:.65rem}.bar select{color:#17243b}.heading{padding:2rem 0 1rem}h1,h2,p{margin:0}h1{font-size:clamp(1.8rem,4vw,2.65rem);letter-spacing:-.05em}h2{font-size:1.2rem}small,.muted{color:var(--muted)}.heading p{margin-top:.35rem}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.25rem}.card,.panel{background:white;border:1px solid var(--line);border-radius:.85rem}.card{padding:1rem 1.2rem}.card span{display:block;color:var(--muted);font-size:.9rem}.card strong{display:block;font-size:1.8rem;margin-top:.15rem}.panel{margin-bottom:1rem}.toolbar{padding:1rem}.filters,.files{display:flex;gap:.7rem;flex-wrap:wrap}.filters label,.fields label{display:grid;gap:.3rem;font-size:.875rem;font-weight:620}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;text-align:left;min-width:760px}th,td{padding:.8rem 1rem;border-top:1px solid var(--line)}th{background:#f8faff;font-size:.8rem;color:var(--muted)}td{font-size:.89rem}td button{border:0;color:var(--blue);padding:.2rem 0;font-weight:700;text-align:left}.pill{display:inline-block;border-radius:1rem;padding:.22rem .55rem;background:#edf1f8;white-space:nowrap}.warn{background:#fff0b9;color:#684a00}.risk{background:#ffe0c2;color:#833b00}.late{background:#ffe0e4;color:#9a1c39}.ok{background:#dff5e9;color:#125438}.empty{text-align:center;padding:2.3rem;color:var(--muted)}.files{padding:1rem;align-items:center}.files small{flex-basis:100%}.notice{min-height:1.3rem;margin-bottom:1rem;color:#214b36}.error{color:#a31632}dialog{width:min(650px,calc(100% - 2rem));max-height:90vh;border:1px solid var(--line);border-radius:1rem;padding:1.35rem;color:inherit}dialog::backdrop{background:#111d3b99}.fields{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin:1rem 0}.wide{grid-column:1/-1}.fields input,.fields select,.fields textarea{width:100%}textarea{resize:vertical}.history{padding-left:1.25rem;overflow-wrap:anywhere}.history li{padding:.35rem 0}.summary{white-space:pre-wrap;overflow-wrap:anywhere;margin:.8rem 0}.dialog-error{margin:.6rem 0}.actions{justify-content:flex-end}[hidden]{display:none!important}
+@media(max-width:640px){.shell{width:calc(100% - 1.5rem)}.stats{gap:.4rem}.card{padding:.65rem}.card span{font-size:.75rem}.fields{grid-template-columns:1fr}.filters select{max-width:100%}.toolbar{align-items:flex-start}.bar label{width:100%;justify-content:space-between}}
+</style>
+</head>
+<body>
+<header><div class="shell bar"><div class="brand"><span class="mark" aria-hidden="true">A</span> Comercial Aurora</div><label>Perfil de prueba <select id="profile"></select></label></div></header>
+<main class="shell">
+  <section class="heading"><div><h1>Solicitudes</h1><p id="scope" class="muted"></p></div><button id="new" class="primary" type="button">Nueva solicitud</button></section>
+  <section class="stats" aria-label="Resumen de la bandeja">
+    <div class="card"><span>Solicitudes</span><strong id="total">0</strong></div>
+    <div class="card"><span>Abiertas</span><strong id="open">0</strong></div>
+    <div class="card"><span>Vencidas</span><strong id="overdue">0</strong></div>
+  </section>
+  <section class="panel" aria-labelledby="inbox">
+    <div class="toolbar"><h2 id="inbox">Bandeja</h2><div id="filters" class="filters" hidden>
+      <label>Responsable<select id="agent"></select></label><label>Estado<select id="status"></select></label><label>Plazo<select id="deadline"></select></label>
+    </div></div>
+    <div class="table-wrap"><table><thead><tr><th scope="col">Ticket</th><th scope="col">Cliente</th><th scope="col">Responsable</th><th scope="col">Estado</th><th scope="col">Plazo</th></tr></thead><tbody id="rows"></tbody></table></div>
+    <p id="empty" class="empty">Todavía no hay solicitudes en esta bandeja.</p>
+  </section>
+  <section class="panel files" aria-label="Archivos de la sesión">
+    <button id="import" type="button">Importar clientes</button><button id="save" type="button">Exportar respaldo</button><button id="restore" type="button">Cargar respaldo</button>
+    <input id="directory-file" type="file" accept=".json,application/json" hidden><input id="backup-file" type="file" accept=".json,application/json" hidden>
+    <small><span id="client-count">0 clientes</span> · Exporta un respaldo antes de cerrar el archivo.</small>
+  </section>
+  <p class="notice" id="notice" role="status"></p>
+</main>
+<dialog id="create" aria-labelledby="create-title">
+  <h2 id="create-title">Nueva solicitud</h2>
+  <form id="create-form" novalidate>
+    <div class="fields">
+      <label>NIT del cliente<input id="nit" list="directory" required autocomplete="off"><datalist id="directory"></datalist><small id="company"></small></label>
+      <label>Canal de origen<select id="channel" required></select></label>
+      <label>Tipo de solicitud<select id="type" required></select></label>
+      <label>Pedido (opcional)<input id="order"></label>
+      <label class="wide">Descripción<textarea id="description" rows="3" minlength="10" required></textarea><small>Mínimo 10 caracteres.</small></label>
+    </div>
+    <p id="create-error" class="error dialog-error" role="alert"></p>
+    <div class="actions"><button type="button" data-close="create">Cancelar</button><button class="primary">Guardar solicitud</button></div>
+  </form>
+</dialog>
+<dialog id="detail" aria-labelledby="detail-title">
+  <h2 id="detail-title"></h2><p id="detail-meta" class="muted"></p><p id="detail-description" class="summary"></p>
+  <h2>Historial</h2><ol id="history" class="history"></ol>
+  <form id="update-form">
+    <div class="fields"><label>Estado<select id="next-status"></select></label><label class="wide">Comentario<textarea id="comment" rows="2"></textarea></label></div>
+    <div class="actions"><button class="primary">Guardar seguimiento</button></div>
+  </form>
+  <div class="actions"><button type="button" data-close="detail">Cerrar detalle</button></div>
+</dialog>
+<script>
+"use strict";
+const el = id => document.getElementById(id);
+const agents = ["Agente 1", "Agente 2", "Agente 3", "Agente 4"];
+const coordinator = "Coordinador";
+const profiles = [...agents, coordinator];
+const channels = ["Mensajería", "Correo electrónico", "Llamada telefónica"];
+const types = ["Consulta de stock", "Estado del pedido", "Inconformidad de envío", "Facturación o cobro", "Devolución"];
+const statuses = ["Nuevo", "En proceso", "Pendiente logística", "Pendiente ventas", "Resuelto", "Cerrado"];
+const hour = 3600000;
+const dateFormat = new Intl.DateTimeFormat("es-CO", { timeZone: "America/Bogota", dateStyle: "medium", timeStyle: "short" });
+const monthFormat = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota", year: "numeric", month: "2-digit" });
+const bands = {
+  normal: ["En plazo", ""], warning: ["Aviso de 24 h", "warn"], risk: ["Aviso de 36 h", "risk"],
+  overdue: ["Vencida", "late"], fulfilled: ["SLA cumplido", "ok"],
+  missed: ["Fuera de plazo", "late"], closed: ["Finalizada", ""]
+};
+let session = { version: 1, clients: [], tickets: [], sequences: {}, nextAgent: 0 };
+let selectedTicket = null;
+
+function fillSelect(id, values, placeholder) {
+  const options = Object.entries(values).map(([value, label]) => new Option(label, value));
+  if (placeholder) options.unshift(new Option(placeholder, ""));
+  el(id).replaceChildren(...options);
+}
+
+function optionsFrom(values) {
+  return Object.fromEntries(values.map(value => [value, value]));
+}
+
+function notify(message, error = false) {
+  el("notice").classList.toggle("error", error);
+  el("notice").textContent = message;
+}
+
+function monthOf(date) {
+  return monthFormat.formatToParts(date).filter(part => part.type !== "literal")
+    .map(part => part.value).join("");
+}
+
+function isOpen(ticket) {
+  return !["Resuelto", "Cerrado"].includes(ticket.status);
+}
+
+function deadlineOf(ticket, now) {
+  if (!isOpen(ticket)) {
+    if (ticket.resolvedAt === null) return "closed";
+    return ticket.withinSla ? "fulfilled" : "missed";
+  }
+  const elapsed = (now - Date.parse(ticket.receivedAt)) / hour;
+  if (elapsed > 48) return "overdue";
+  if (elapsed >= 36) return "risk";
+  return elapsed >= 24 ? "warning" : "normal";
+}
+
+function addCell(row, content) {
+  const cell = row.insertCell();
+  if (typeof content === "string") cell.textContent = content;
+  else cell.append(content);
+}
+
+function renderInbox() {
+  const profile = el("profile").value;
+  const supervisory = profile === coordinator;
+  const now = Date.now();
+  const visible = session.tickets.filter(ticket => supervisory || ticket.agent === profile);
+  el("scope").textContent = supervisory ? "Vista general de los cuatro agentes" : "Casos asignados a " + profile;
+  el("filters").hidden = !supervisory;
+  el("new").hidden = supervisory;
+  el("total").textContent = visible.length;
+  el("open").textContent = visible.filter(isOpen).length;
+  el("overdue").textContent = visible.filter(ticket => deadlineOf(ticket, now) === "overdue").length;
+  const filtered = visible.filter(ticket => !supervisory || (
+    (!el("agent").value || ticket.agent === el("agent").value) &&
+    (!el("status").value || ticket.status === el("status").value) &&
+    (!el("deadline").value || deadlineOf(ticket, now) === el("deadline").value)
+  ));
+  const focusedTicket = el("rows").contains(document.activeElement) ? document.activeElement.dataset.ticket : "";
+  const body = document.createDocumentFragment();
+  for (const ticket of filtered.slice().reverse()) {
+    const row = document.createElement("tr");
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = ticket.id;
+    button.dataset.ticket = ticket.id;
+    button.addEventListener("click", () => openDetail(ticket));
+    const [label, style] = bands[deadlineOf(ticket, now)];
+    const badge = document.createElement("span");
+    badge.className = "pill " + style;
+    badge.textContent = label;
+    for (const content of [button, ticket.clientName, ticket.agent, ticket.status, badge]) addCell(row, content);
+    body.append(row);
+  }
+  el("rows").replaceChildren(body);
+  if (focusedTicket) {
+    Array.from(el("rows").querySelectorAll("button")).find(button => button.dataset.ticket === focusedTicket)?.focus();
+  }
+  el("empty").hidden = filtered.length > 0;
+  el("empty").textContent = visible.length ? "Ninguna solicitud coincide con los filtros." : "Todavía no hay solicitudes en esta bandeja.";
+  el("client-count").textContent = session.clients.length + " clientes";
+}
+
+function clientForNit() {
+  return session.clients.find(client => client.nit === el("nit").value.trim());
+}
+
+function showCompany() {
+  const client = clientForNit();
+  el("company").textContent = client?.name || "";
+}
+
+function openCreate() {
+  if (el("profile").value === coordinator) return;
+  el("create-form").reset();
+  el("create-error").textContent = "";
+  el("directory").replaceChildren(...session.clients.map(client => new Option(client.name, client.nit)));
+  showCompany();
+  el("create").showModal();
+}
+
+function register(event) {
+  event.preventDefault();
+  const profile = el("profile").value;
+  if (!agents.includes(profile)) return;
+  const client = clientForNit();
+  const channel = el("channel").value;
+  const type = el("type").value;
+  const description = el("description").value.trim();
+  const errors = [];
+  if (!client) errors.push("Indica el NIT de un cliente del directorio.");
+  if (!channels.includes(channel)) errors.push("Selecciona un canal.");
+  if (!types.includes(type)) errors.push("Selecciona un tipo de solicitud.");
+  if (description.length < 10) errors.push("Escribe una descripción de al menos 10 caracteres.");
+  const now = new Date();
+  const month = monthOf(now);
+  const sequence = (session.sequences[month] || 0) + 1;
+  if (sequence > 9999) errors.push("Se agotaron los consecutivos de este mes.");
+  if (errors.length) {
+    el("create-error").textContent = errors.join(" ");
+    return;
+  }
+  const receivedAt = now.toISOString();
+  const ticket = {
+    id: "AUR-" + month + "-" + String(sequence).padStart(4, "0"),
+    receivedAt, channel, type, description, nit: client.nit, clientName: client.name,
+    order: el("order").value.trim(), agent: agents[session.nextAgent], status: "Nuevo",
+    resolvedAt: null, elapsedHours: null, withinSla: null,
+    history: [{ at: receivedAt, profile, action: "Radicación", from: null, to: "Nuevo", comment: "" }]
+  };
+  session.tickets.push(ticket);
+  session.sequences[month] = sequence;
+  session.nextAgent = (session.nextAgent + 1) % agents.length;
+  el("create").close();
+  renderInbox();
+  notify(ticket.id + " registrada y asignada a " + ticket.agent + ".");
+}
+
+function renderDetail(ticket) {
+  el("detail-title").textContent = ticket.id + " · " + ticket.status;
+  const resolution = ticket.resolvedAt === null ? "" :
+    " · " + ticket.elapsedHours.toLocaleString("es-CO", { maximumFractionDigits: 2 }) +
+    " h · " + (ticket.withinSla ? "SLA cumplido" : "Fuera de plazo");
+  el("detail-meta").textContent = [ticket.clientName, "NIT " + ticket.nit, ticket.agent,
+    dateFormat.format(new Date(ticket.receivedAt)), ticket.channel, ticket.type,
+    ticket.order && "Pedido " + ticket.order].filter(Boolean).join(" · ") + resolution;
+  el("detail-description").textContent = ticket.description;
+  el("history").replaceChildren(...ticket.history.map(event => {
+    const item = document.createElement("li");
+    const transition = event.from && event.from !== event.to ? " · " + event.from + " → " + event.to : "";
+    item.textContent = dateFormat.format(new Date(event.at)) + " · " + event.profile + " · " +
+      event.action + transition + (event.comment ? " · " + event.comment : "");
+    return item;
+  }));
+  el("update-form").hidden = ticket.agent !== el("profile").value;
+  fillSelect("next-status", optionsFrom(statuses.filter(status => status !== "Nuevo" || status === ticket.status)));
+  el("next-status").value = ticket.status;
+  el("comment").value = "";
+}
+
+function openDetail(ticket) {
+  selectedTicket = ticket;
+  renderDetail(ticket);
+  el("detail").showModal();
+}
+
+function updateTicket(event) {
+  event.preventDefault();
+  const ticket = selectedTicket;
+  const profile = el("profile").value;
+  const nextStatus = el("next-status").value;
+  if (!ticket || ticket.agent !== profile || !statuses.includes(nextStatus)) return;
+  const from = ticket.status;
+  const comment = el("comment").value.trim();
+  if (from === nextStatus && !comment) return;
+  const now = new Date();
+  const at = now.toISOString();
+  if (from !== nextStatus && nextStatus === "Resuelto") {
+    ticket.resolvedAt = at;
+    ticket.elapsedHours = Math.max(0, (now - Date.parse(ticket.receivedAt)) / hour);
+    ticket.withinSla = ticket.elapsedHours <= 48;
+  } else if (from !== nextStatus && !["Resuelto", "Cerrado"].includes(nextStatus)) {
+    ticket.resolvedAt = null;
+    ticket.elapsedHours = null;
+    ticket.withinSla = null;
+  }
+  ticket.status = nextStatus;
+  ticket.history.push({ at, profile, action: from === nextStatus ? "Comentario" : "Cambio de estado",
+    from, to: nextStatus, comment });
+  renderDetail(ticket);
+  renderInbox();
+}
+
+function isObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function hasText(value) {
+  return typeof value === "string" && value.trim() !== "";
+}
+
+function isTimestamp(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) return false;
+  const date = new Date(value);
+  return Number.isFinite(date.getTime()) && date.toISOString() === value;
+}
+
+function validateDirectory(data) {
+  if (!Array.isArray(data)) throw new Error("El directorio debe ser una lista de clientes.");
+  const seen = new Set();
+  return data.map((client, index) => {
+    if (!isObject(client) || !hasText(client.nit) || !hasText(client.name)) {
+      throw new Error("El cliente " + (index + 1) + " debe tener NIT y razón social.");
+    }
+    const nit = client.nit.trim();
+    if (seen.has(nit)) throw new Error("NIT duplicado en el directorio: " + nit);
+    seen.add(nit);
+    return { nit, name: client.name.trim() };
+  });
+}
+
+function validateHistory(ticket) {
+  if (!Array.isArray(ticket.history) || !ticket.history.length) return false;
+  let previous = null;
+  for (const event of ticket.history) {
+    if (!isObject(event) || !isTimestamp(event.at) || typeof event.comment !== "string" ||
+        event.from !== previous || !statuses.includes(event.to)) return false;
+    if (previous === null) {
+      if (event.action !== "Radicación" || !agents.includes(event.profile) ||
+          event.at !== ticket.receivedAt || event.to !== "Nuevo") return false;
+    } else if (event.profile !== ticket.agent ||
+               event.action !== (event.from === event.to ? "Comentario" : "Cambio de estado")) return false;
+    previous = event.to;
+  }
+  return previous === ticket.status;
+}
+
+function validateResolution(ticket) {
+  if (ticket.resolvedAt === null) {
+    return ticket.status !== "Resuelto" && ticket.elapsedHours === null && ticket.withinSla === null;
+  }
+  if (isOpen(ticket) || !isTimestamp(ticket.resolvedAt)) return false;
+  const hours = Math.max(0, (Date.parse(ticket.resolvedAt) - Date.parse(ticket.receivedAt)) / hour);
+  return ticket.elapsedHours === hours && ticket.withinSla === (hours <= 48) && ticket.history.some(event =>
+    event.at === ticket.resolvedAt && event.to === "Resuelto" && event.from !== "Resuelto"
+  );
+}
+
+function validateBackup(data) {
+  if (!isObject(data) || data.version !== 1 || !Array.isArray(data.tickets) || !isObject(data.sequences) ||
+      !Number.isInteger(data.nextAgent) || data.nextAgent < 0 || data.nextAgent >= agents.length) {
+    throw new Error("El archivo no es un respaldo de Aurora compatible.");
+  }
+  const clients = validateDirectory(data.clients);
+  for (const [month, sequence] of Object.entries(data.sequences)) {
+    if (!/^\d{4}(0[1-9]|1[0-2])$/.test(month) ||
+        !Number.isInteger(sequence) || sequence < 1 || sequence > 9999) {
+      throw new Error("El respaldo contiene consecutivos inválidos.");
+    }
+  }
+  const seen = new Set();
+  for (const [index, ticket] of data.tickets.entries()) {
+    const match = isObject(ticket) && typeof ticket.id === "string" && /^AUR-(\d{6})-(\d{4})$/.exec(ticket.id);
+    if (!match || seen.has(ticket.id) || !isTimestamp(ticket.receivedAt) ||
+        monthOf(new Date(ticket.receivedAt)) !== match[1] || !Object.hasOwn(data.sequences, match[1]) ||
+        Number(match[2]) < 1 || Number(match[2]) > data.sequences[match[1]] ||
+        !channels.includes(ticket.channel) || !types.includes(ticket.type) || !agents.includes(ticket.agent) ||
+        !statuses.includes(ticket.status) || !hasText(ticket.nit) || !hasText(ticket.clientName) ||
+        typeof ticket.order !== "string" || typeof ticket.description !== "string" ||
+        ticket.description.trim().length < 10 || !validateHistory(ticket) || !validateResolution(ticket)) {
+      throw new Error("La solicitud " + (index + 1) + " del respaldo es inválida o está duplicada.");
+    }
+    seen.add(ticket.id);
+  }
+  return { version: 1, clients, tickets: data.tickets, sequences: data.sequences, nextAgent: data.nextAgent };
+}
+
+async function loadJson(input, restore) {
+  const file = input.files[0];
+  input.value = "";
+  if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (restore) {
+      const restored = validateBackup(data);
+      if ((session.clients.length || session.tickets.length) &&
+          !window.confirm("¿Reemplazar los datos de la sesión con este respaldo?")) return;
+      session = restored;
+      notify("Respaldo cargado: " + session.tickets.length + " solicitudes.");
+    } else {
+      session.clients = validateDirectory(data);
+      notify("Directorio cargado: " + session.clients.length + " clientes.");
+    }
+    renderInbox();
+  } catch (error) {
+    notify(error instanceof SyntaxError ? "El archivo no contiene JSON válido." : error.message, true);
+  }
+}
+
+function exportBackup() {
+  const blob = new Blob([JSON.stringify(session, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "aurora-respaldo-" + new Date().toISOString().slice(0, 10) + ".json";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  notify("Respaldo generado.");
+}
+
+el("import").addEventListener("click", () => el("directory-file").click());
+el("restore").addEventListener("click", () => el("backup-file").click());
+el("directory-file").addEventListener("change", event => loadJson(event.target, false));
+el("backup-file").addEventListener("change", event => loadJson(event.target, true));
+el("save").addEventListener("click", exportBackup);
+
+fillSelect("profile", optionsFrom(profiles));
+fillSelect("agent", optionsFrom(agents), "Todos");
+fillSelect("status", optionsFrom(statuses), "Todos");
+fillSelect("deadline", Object.fromEntries(Object.entries(bands).map(([key, value]) => [key, value[0]])), "Todos");
+fillSelect("channel", optionsFrom(channels), "Selecciona un canal");
+fillSelect("type", optionsFrom(types), "Selecciona un tipo");
+for (const id of ["profile", "agent", "status", "deadline"]) el(id).addEventListener("change", renderInbox);
+for (const button of document.querySelectorAll("[data-close]")) {
+  button.addEventListener("click", () => el(button.dataset.close).close());
+}
+el("new").addEventListener("click", openCreate);
+el("nit").addEventListener("input", showCompany);
+el("create-form").addEventListener("submit", register);
+el("update-form").addEventListener("submit", updateTicket);
+renderInbox();
+setInterval(renderInbox, 15000);
+</script>
+</body>
+</html>
