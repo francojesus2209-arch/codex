@@ -1,0 +1,21 @@
+{
+  "name": "codex",
+  "version": "0.1.0",
+  "description": "Spec-driven development with OpenSpec and Codex",
+  "scripts": {
+    "openspec": "openspec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/francojesus2209-arch/codex.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/francojesus2209-arch/codex/issues"
+  },
+  "homepage": "https://github.com/francojesus2209-arch/codex#readme",
+  "private": true,
+  "devDependencies": {
+    "@fission-ai/openspec": "2.1.0"
+  }
+}
